@@ -41,6 +41,11 @@ model User {
   availabilities      Availability[]
   transactions        CreditTransaction[]
   payouts             Payout[]
+
+  //Journal
+  collections       Collection[]
+  entries           Entry[]
+  currentDraft      Draft?
 }
 
 enum UserRole {
@@ -49,6 +54,7 @@ enum UserRole {
   DOCTOR
   ADMIN
 }
+
 
 enum VerificationStatus {
   PENDING
@@ -141,3 +147,43 @@ enum PayoutStatus {
   PROCESSING
   PROCESSED
 }
+
+model Collection {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  entries     Entry[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([name, userId])
+}
+
+model Entry {
+  id            String      @id @default(cuid())
+  title         String
+  content       String      @db.Text
+  mood          String      // References moods.js constants
+  moodScore     Int         // Numeric value from moods.js for analytics
+  moodImageUrl  String?     // Pixabay image URL
+  collection    Collection? @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  collectionId  String?
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Draft {
+  id            String    @id @default(cuid())
+  title         String?
+  content       String?   @db.Text
+  mood          String?
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String    @unique  // One draft per user
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+

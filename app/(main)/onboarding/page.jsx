@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -98,7 +98,7 @@ export default function OnboardingPage() {
                 </CardDescription>
                 <Button
                   className="w-full mt-2 bg-gradient-to-r from-[#18063d] to-[#4b0f7a] hover:opacity-90 text-white"
-                  disabled={loading}
+                  disabled={loading} onClick={()=>{redirect(".")}}
                 >
                   {loading ? (
                     <>

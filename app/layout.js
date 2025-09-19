@@ -5,7 +5,8 @@ import Header from "@/components/header";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
 
-const inter = Inter({ subsets: ["latin"] }); // ✅ fixed here
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: "Prana",
@@ -16,6 +17,8 @@ export default function RootLayout({ children }) {
   return (
     <ClerkProvider>
       <html lang="en">
+        <head>
+        </head>
         <body className={inter.className}>
           <Header />
           <Toaster position="top-right" richColors />

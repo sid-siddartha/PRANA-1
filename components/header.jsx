@@ -4,7 +4,7 @@ import Link from "next/link";
 import React from "react";
 import { Button } from "./ui/button";
 import { checkUser } from "@/lib/checkUser";
-import { Calendar, ShieldCheck, Stethoscope, User } from "lucide-react";
+import { Calendar, LayoutDashboard, ShieldCheck, Stethoscope, User } from "lucide-react";
 import { checkAndAllocateCredits } from "@/actions/credits";
 import { auth } from "@clerk/nextjs/server";
 
@@ -20,7 +20,7 @@ const Header = async () => {
     <div className="fixed top-0 w-full bg-transparent backdrop-blur-sm z-50 border-b shadow-md">
       <nav className="container mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center">
+        <Link href="/dashboard" className="flex items-center">
           <Image
             src="/logo.png"
             alt="AI Mental Health Logo"
@@ -68,13 +68,13 @@ const Header = async () => {
 
             {/* Patient Links */}
             {user?.role === "PATIENT" && (
-              <Link href="/appointments">
+              <Link href="/dashboard">
                 <Button
                   variant="outline"
                   className="hidden md:inline-flex items-center hover:cursor-pointer   gap-2 bg-[#eac6ff]"
                 >
-                  <Calendar className="h-4 w-4" />
-                  My Appointments
+                  <LayoutDashboard className="h-4 w-4" />
+                  Dashboard
                 </Button>
                 <Button variant="ghost" className="md:hidden w-10 h-10 p-0">
                   <Calendar className="h-4 w-4" />

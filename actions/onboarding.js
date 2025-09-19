@@ -40,7 +40,7 @@ export async function setUserRole(formData) {
       });
 
       revalidatePath("/");
-      return { success: true, redirect: "/doctors" };
+      return { success: true, redirect: "/questions" };
     }
 
     // For doctor role - need additional information
