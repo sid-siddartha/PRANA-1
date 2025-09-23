@@ -21,7 +21,7 @@ export default function RootLayout({ children }) {
         </head>
         <body className={inter.className}>
           <Header />
-          <Toaster position="top-right" richColors />
+    
           {/* <ThemeProvider
               attribute="class"
               defaultTheme="Light"
