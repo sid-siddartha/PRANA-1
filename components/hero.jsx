@@ -52,7 +52,7 @@ const HeroSection = () => {
           viewport={{ once: true, amount: 0.3 }}
           className="flex justify-center space-x-4"
         >
-          <Link href="/dashboard">
+          <Link href="/sign-in">
             <Button size="lg" className="px-8">
               Get Started
             </Button>
