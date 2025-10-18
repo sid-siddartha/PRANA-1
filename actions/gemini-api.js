@@ -1,11 +1,10 @@
-"use server";
-
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-export async function analyzeScores({ scores, answers }) {
+export async function POST(req) {
   try {
+    const { scores, answers } = await req.json();
+
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
     const prompt = `
@@ -17,53 +16,32 @@ export async function analyzeScores({ scores, answers }) {
       Here are their answers:
       ${answers.map((a, i) => `Q${i + 1}: ${a.question} → ${a.answer}`).join("\n")}
 
-      Please analyze:
-      - Their current stress and anxiety levels
-      - What this score and answers generally indicate
-      - A short recommendation (wellness advice, next steps)
-
-      Respond strictly in valid JSON format with these exact keys:
+      Please respond ONLY in JSON with keys:
       {
         "summary": "...",
         "stressLevel": "...",
         "recommendation": "..."
       }
-      Do not include any explanation or markdown formatting.
     `;
 
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: "application/json" },
+    });
 
-    // ✅ Safely extract text
-    const text =
-      result.response?.text?.() ||
-      result.response?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "";
+    const text = result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const parsed = JSON.parse(text);
 
-    // ✅ Clean possible code blocks
-    let cleaned = text.trim();
-    if (cleaned.startsWith("```")) {
-      cleaned = cleaned.replace(/^```(json)?/, "").replace(/```$/, "").trim();
-    }
-
-    // ✅ Try parsing JSON
-    let parsed;
-    try {
-      parsed = JSON.parse(cleaned);
-    } catch {
-      parsed = {
-        summary: cleaned || "No structured summary provided.",
-        stressLevel: "Unknown",
-        recommendation: "Could not parse structured result.",
-      };
-    }
-
-    return parsed;
+    return Response.json(parsed);
   } catch (error) {
-    console.error("Gemini error:", error);
-    return {
-      summary: "Could not analyze results.",
-      stressLevel: "Unknown",
-      recommendation: "Please try again later.",
-    };
+    console.error("Gemini API Error:", error);
+    return Response.json(
+      {
+        summary: "Could not analyze results.",
+        stressLevel: "Unknown",
+        recommendation: "Please try again later.",
+      },
+      { status: 500 }
+    );
   }
 }
