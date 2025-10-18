@@ -1,34 +1,42 @@
-import { Button } from "@/components/ui/button";
-import { MessageCircle, Calendar, PenLine } from "lucide-react";
-import Link from "next/link";
+import DashboardActions from "./_components/dashboard-actions";
+import MoodAnalytics from "./_components/mood-analytics";
+import Collections from "./_components/collections";
+import { getCollections } from "@/actions/collection";
+import { getJournalEntries } from "@/actions/journal";
 
-<section className="grid grid-cols-10 gap-4">
-    <Link href="/journal/write" className="col-span-6">
-    <Button
-      variant="outline"
-      className="w-full h-full flex flex-col items-center justify-center gap-3 border-purple-200 text-purple-600 hover:border-purple-400 hover:bg-purple-50 hover:shadow-lg transition-all"
-    >
-      <PenLine className="w-8 h-8" />
-      <span className="font-semibold text-lg">Share Your Day</span>
-    </Button>
-  </Link>
-  <Link href="/chatbot" className="col-span-2">
-    <Button
-      variant="outline"
-      className="w-full h-full flex flex-col items-center justify-center gap-3 border-purple-200 text-purple-600 hover:border-purple-400 hover:bg-purple-50 hover:shadow-lg transition-all"
-    >
-      <MessageCircle className="w-8 h-8" />
-      <span className="font-semibold text-lg">Chat with Bot</span>
-    </Button>
-  </Link>
+const Dashboard = async () => {
+  const collections = await getCollections();
+  const entriesData = await getJournalEntries();
 
-  <Link href="/counsellors" className="col-span-2">
-    <Button
-      variant="outline"
-      className="w-full h-full flex flex-col items-center justify-center gap-3 border-purple-200 text-purple-600 hover:border-purple-400 hover:bg-purple-50 hover:shadow-lg transition-all"
-    >
-      <Calendar className="w-8 h-8" />
-      <span className="font-semibold text-lg">Book Appointment</span>
-    </Button>
-  </Link>
-</section>
+  const entriesByCollection = entriesData?.data?.entries?.reduce(
+    (acc, entry) => {
+      const collectionId = entry.collectionId || "unorganized";
+      if (!acc[collectionId]) acc[collectionId] = [];
+      acc[collectionId].push(entry);
+      return acc;
+    },
+    {}
+  );
+
+  return (
+    <div className="px-4 py-8 space-y-8 min-h-screen">
+      {/* Quick Actions */}
+      <DashboardActions />
+
+      {/* Analytics Section */}
+      <section className="space-y-4">
+        <MoodAnalytics />
+      </section>
+
+      {/* Collections Section */}
+      <section>
+        <Collections
+          collections={collections}
+          entriesByCollection={entriesByCollection}
+        />
+      </section>
+    </div>
+  );
+};
+
+export default Dashboard;
