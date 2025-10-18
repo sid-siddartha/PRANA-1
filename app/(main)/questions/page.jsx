@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { questions, options } from "@/data/questions";
-import { analyzeScores } from "@/actions/gemini-api"; // server action
 
 const QuestionnairePage = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -13,33 +12,41 @@ const QuestionnairePage = () => {
   const [analysis, setAnalysis] = useState(null);
 
   const handleOptionSelect = (value, text) => {
-  setScores((prev) => ({
-    ...prev,
-    [questions[currentIndex].type]:
-      prev[questions[currentIndex].type] + value,
-  }));
+    setScores((prev) => ({
+      ...prev,
+      [questions[currentIndex].type]: prev[questions[currentIndex].type] + value,
+    }));
 
-  setAnswers((prev) => [
-    ...prev,
-    { question: questions[currentIndex].text, answer: text },
-  ]);
+    setAnswers((prev) => [
+      ...prev,
+      { question: questions[currentIndex].text, answer: text },
+    ]);
 
-  // ✅ Move past the last question
-  if (currentIndex < questions.length - 1) {
-    setCurrentIndex((prev) => prev + 1);
-  } else {
-    setCurrentIndex((prev) => prev + 1); // allow reaching questions.length
-  }
-};
-
+    if (currentIndex < questions.length - 1) {
+      setCurrentIndex((prev) => prev + 1);
+    } else {
+      setCurrentIndex((prev) => prev + 1); // allow reaching questions.length
+    }
+  };
 
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const result = await analyzeScores({ scores, answers });
-      setAnalysis(result);
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scores, answers }),
+      });
+
+      const data = await res.json();
+      setAnalysis(data);
     } catch (err) {
       console.error("Error analyzing:", err);
+      setAnalysis({
+        summary: "Error occurred while analyzing.",
+        stressLevel: "Unknown",
+        recommendation: "Please try again later.",
+      });
     } finally {
       setLoading(false);
     }
