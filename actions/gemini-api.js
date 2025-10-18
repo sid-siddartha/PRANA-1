@@ -6,7 +6,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export async function analyzeScores({ scores, answers }) {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
     const prompt = `
       The user completed PHQ-9 and GAD-7 assessments.
@@ -22,24 +22,36 @@ export async function analyzeScores({ scores, answers }) {
       - What this score and answers generally indicate
       - A short recommendation (wellness advice, next steps)
 
-      Respond strictly in JSON with keys: summary, stressLevel, recommendation.
+      Respond strictly in valid JSON format with these exact keys:
+      {
+        "summary": "...",
+        "stressLevel": "...",
+        "recommendation": "..."
+      }
+      Do not include any explanation or markdown formatting.
     `;
 
     const result = await model.generateContent(prompt);
-    const text = result.response.text();
 
-    // --- FIXED PARSING ---
+    // ✅ Safely extract text
+    const text =
+      result.response?.text?.() ||
+      result.response?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "";
+
+    // ✅ Clean possible code blocks
     let cleaned = text.trim();
     if (cleaned.startsWith("```")) {
       cleaned = cleaned.replace(/^```(json)?/, "").replace(/```$/, "").trim();
     }
 
+    // ✅ Try parsing JSON
     let parsed;
     try {
       parsed = JSON.parse(cleaned);
     } catch {
       parsed = {
-        summary: cleaned,
+        summary: cleaned || "No structured summary provided.",
         stressLevel: "Unknown",
         recommendation: "Could not parse structured result.",
       };
